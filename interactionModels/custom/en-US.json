@@ -1,0 +1,175 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "e. i. u. menu",
+      "intents": [
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.NavigateHomeIntent",
+          "samples": []
+        },
+        {
+          "name": "LunchMenu",
+          "slots": [
+            {
+              "name": "hall",
+              "type": "dininghalls"
+            },
+            {
+              "name": "menuDate",
+              "type": "AMAZON.DATE"
+            }
+          ],
+          "samples": [
+            "what\u0027s for lunch in {hall} ",
+            "what\u0027s for lunch at {hall} on {menuDate}",
+            "what\u0027s for lunch on {menuDate}",
+            "what\u0027s {hall}  lunch",
+            "what\u0027s for lunch at {hall}",
+            "what\u0027s for lunch",
+            "what\u0027s on the lunch menu",
+            "what\u0027s today\u0027s lunch",
+            "What\u0027s for lunch today"
+          ]
+        },
+        {
+          "name": "DinnerMenu",
+          "slots": [
+            {
+              "name": "hall",
+              "type": "dininghalls"
+            },
+            {
+              "name": "menuDate",
+              "type": "AMAZON.DATE"
+            }
+          ],
+          "samples": [
+            "what\u0027s for dinner in {hall}",
+            "what\u0027s for dinner at {hall} on {menuDate}",
+            "what\u0027s for dinner on {menuDate}",
+            "what\u0027s {hall}  dinner",
+            "what\u0027s for dinner at {hall}",
+            "what\u0027s for dinner",
+            "what\u0027s on the dinner menu",
+            "what\u0027s today\u0027s dinner",
+            "What\u0027s for dinner today"
+          ]
+        }
+      ],
+      "types": [
+        {
+          "values": [
+            {
+              "id": "ANDREWS",
+              "name": {
+                "value": "ANDREWS",
+                "synonyms": [
+                  "andrews",
+                  "andrews hall"
+                ]
+              }
+            },
+            {
+              "id": "FOODCOURT",
+              "name": {
+                "value": "FOODCOURT",
+                "synonyms": [
+                  "food court",
+                  "charleston market",
+                  "panther grill",
+                  "university food court"
+                ]
+              }
+            },
+            {
+              "id": "LAWSON",
+              "name": {
+                "value": "LAWSON",
+                "synonyms": [
+                  "lawson",
+                  "lawson hall"
+                ]
+              }
+            },
+            {
+              "id": "THOMAS",
+              "name": {
+                "value": "THOMAS",
+                "synonyms": [
+                  "thomas",
+                  "thomas hall"
+                ]
+              }
+            },
+            {
+              "id": "TAYLOR",
+              "name": {
+                "value": "TAYLOR",
+                "synonyms": [
+                  "taylor",
+                  "taylor hall"
+                ]
+              }
+            },
+            {
+              "id": "STEVOGRILL",
+              "name": {
+                "value": "STEVOGRILL",
+                "synonyms": [
+                  "stevo grill",
+                  "tower grill",
+                  "steve o. tower grill",
+                  "stevenson tower grill",
+                  "steve o. grill",
+                  "stevenson grill",
+                  "grill"
+                ]
+              }
+            },
+            {
+              "id": "STEVODELI",
+              "name": {
+                "value": "STEVODELI",
+                "synonyms": [
+                  "stevo deli",
+                  "tower deli",
+                  "deli",
+                  "stevenson tower deli",
+                  "stevenson deli",
+                  "steve o. deli",
+                  "steve o. tower deli"
+                ]
+              }
+            },
+            {
+              "id": "STEVO",
+              "name": {
+                "value": "STEVO",
+                "synonyms": [
+                  "tower",
+                  "steve o.",
+                  "stevenson",
+                  "stevo"
+                ]
+              }
+            }
+          ],
+          "name": "dininghalls"
+        }
+      ]
+    }
+  },
+  "version": "7"
+}
