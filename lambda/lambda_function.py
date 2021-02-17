@@ -14,6 +14,7 @@ from datetime import date
 
 import urllib.request
 from bs4 import BeautifulSoup#, SoupStrainer
+from html import escape
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
@@ -44,32 +45,40 @@ class MenuIntentHandler(AbstractRequestHandler):
                 or ask_utils.is_intent_name("DinnerMenu")(handler_input))
     
     def handle(self, handler_input):
+        #What hall?
         hallSlot = ask_utils.get_slot(handler_input=handler_input, slot_name="hall")
         try:
             hallID = hallSlot.resolutions.resolutions_per_authority[0].values[0].value.id
         except:
             hallID = "ALL"
         
+        #What day?
         dateValue = ask_utils.get_slot_value(handler_input=handler_input, slot_name="menuDate")
         if not dateValue:
-            dateValue = date.today().strftime("%Y-%m-%d")
+            dateValue = ""
             
+        #What meal?
         menuName = ask_utils.get_intent_name(handler_input)
         if menuName == "BreakfastMenu":
-            meal = 1
+            meal = 0
         elif menuName == "LunchMenu":
-            meal = 2
+            meal = 1
         elif menuName == "DinnerMenu":
-            meal = 3
-        #Column to be scraped
+            meal = 2
 
-        menuObj = self.pullMenus(dateValue)
-        hallIndex = self.findMenus(hallID)
-        
-        if hallIndex:
-            output = "; ".join(self.genOutput(menuObj, hallIndex, meal))
+        if hallID == "ALL":
+            page = self.pullA(dateValue, meal)
+            output = [self.scrape(hall) for hall in page.findAll(class_="meal row")]
+            print("initial output complete")
+            output = ["In Taylor Dining:", output[2], "In Thomas Dining:", output[3],
+            "At Stevenson Deli: ", output[1], "At Stevenson Grill: ", output[0],
+            "At the Union: ", output[4]]
+            print("output sorting complete")
+            output = ";".join(output)
+            print("output complete")
         else:
-            output = "; ".join(self.allMenus(menuObj, meal))
+            page = self.pullH(hallID, dateValue, meal)
+            output = self.scrape(page)
         
         return (
             handler_input.response_builder
@@ -77,67 +86,50 @@ class MenuIntentHandler(AbstractRequestHandler):
                 .response
         )
         
+    def pullA(self, dateValue, meal):
+        menu = self.pullMain(dateValue)
+        menu = menu.findAll(class_="date-container")[0]
+        menu = menu.findAll(class_="date-event")[meal]
+        print("pullA complete")
+        return menu
     
-    def pullMenus(self, dateValue):
+    def pullH(self, hallID, dateValue, meal):
+        menu = self.pullMain(dateValue)
+        menu = menu.findAll(class_="date-container")[1]
+        menu = menu.findAll(class_="date-event")[self.numHall(hallID)]
+        return menu.findAll(class_="meal row")[meal]
+    
+    def pullMain(self, dateValue):
         url = "https://www.eiu.edu/dining/dining_menu.php?date=" + dateValue
         webpage = urllib.request.urlopen(url)
         soup = BeautifulSoup(webpage, "html.parser")
-        body = soup.find("tbody")
-        menus = body.findAll("tr")
-        return menus
-            
-    def findMenus(self, hall):
-        if "STEVO" in hall:
-            if hall == "STEVOGRILL":
-                return [0]
-            elif hall == "STEVODELI":
-                return [1]
-            else:
-                return [0,1]
-        elif hall in ["TAYLOR", "LAWSON"]:
-            return [2]
-        elif hall in ["THOMAS", "ANDREWS"]:
-            return [3]
-        elif hall in ["FOODCOURT"]:
-            return [4]
-        else:
-            return None
-            
-    def genOutput(self, menuObj, indexList, meal):
-        outputList = []
-        for i in range(len(indexList)):
-            outputList.append(self.scrapeMenu(menuObj, indexList[i], meal))
-        
-        return outputList
-            
-    def scrapeMenu(self, menuObj, menuIndex, meal):
-        selectedMenu = menuObj[menuIndex]
-        selectedMenuMeals = selectedMenu.findAll("td")
-        returnvalue = selectedMenuMeals[meal].getText()
-        
-        returnvalue = returnvalue.replace("\r", ", ")
-        for replaceText in ["\t", "\n", "\xa0", 
-        " - Bonici Brothers Pizza and Pasta"]:
-            if replaceText in returnvalue:
-                returnvalue = returnvalue.replace(replaceText, " ")
-        returnvalue = returnvalue.replace("&", "&amp;")
-        returnvalue = returnvalue.replace('"', "&quot;")
-        returnvalue = returnvalue.replace("'", "&apos;")
-        for replaceText in ["Thomas", "Lawson", "Dessert"]:
-            if replaceText in returnvalue:
-                returnvalue = returnvalue.replace(replaceText, (",; " + replaceText))
-        
-        returnvalue = returnvalue.replace(("Dining Center Entrance Guideline Please enter the Dining Center on the side you "
-        "intend to get your meal from.  You must eat from the side you enter. Thank you."), " ")
-        
-        return returnvalue
-        
-    def allMenus(self, menuObj, meal):
-        outputList = self.genOutput(menuObj, [2,3,1,0,4], meal)
-        outputList.insert(2, "Stevenson Deli: ")
-        outputList.insert(4, "Stevenson Grill: ")
-        outputList.insert(6, "Food Court: ")
-        return outputList
+        main = soup.find(class_="mainbodywrapper")
+        print("pullMain complete")
+        return main
+    
+    def numHall(self, hallID):
+        hallDict = {"STEVOGRILL": 0, "STEVODELI": 1, "TAYLOR": 2, "LAWSON": 2,
+                    "THOMAS": 3, "ANDREWS": 3, "FOODCOURT": 4}
+        return hallDict[hallID]
+    
+    def scrape(self, page):
+        list = [p.getText() for p in page.findAll("p")]
+        list = [self.clean(item) for item in list]
+        print("scrape complete")
+        return "".join(list)
+    
+    def clean(self, item):
+        item = item.replace("\r", ", ")
+        for replaceText in ("\t", "\n", "\xa0",
+        " - Bonici Brothers Pizza and Pasta", "- V"):
+            if replaceText in item:
+                item = item.replace(replaceText, " ")
+        item = escape(item)
+        for replaceText in ("Thomas Side", "Lawson Side", "Dessert", "Out Front"):
+            if replaceText in item:
+                item = item.replace(replaceText, (",; " + replaceText))
+        print("clean complete")
+        return item
 
 
 class HelpIntentHandler(AbstractRequestHandler):
